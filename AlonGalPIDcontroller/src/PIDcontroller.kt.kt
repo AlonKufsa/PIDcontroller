@@ -1,6 +1,7 @@
+import java.lang.Exception
 import kotlin.math.absoluteValue
 
-class `PIDcontroller.kt`(
+class PIDController(
     private val kP: Double,
     private val kI: Double,
     private val kD: Double,
@@ -8,16 +9,27 @@ class `PIDcontroller.kt`(
     private val integralMax: Double = 0.0,
 ) {
 	private var integralSum = 0.0
-	public var tolerance = 0.0
+	var tolerance = 0.0
 	var error = 0.0
 		private set
 	private var prevError = 0.0
-	// setPoint -> The desired value
-	//processVariable -> the measured value
 
-	//Calculates the error as a difference between setPoint and processVariable
-	private fun setError(setPoint: Double, processVariable: Double) {
-		error = setPoint - processVariable
+	/**
+	 * Calculates the error as a difference between [setpoint] and [processVariable].
+	 *
+	 * [setpoint] - The desired value
+	 * [processVariable] - the measured value
+	 *
+	 * If continuous wrapping is enabled then it will calculate the error as the shortest error
+	 */
+	private fun setError(setpoint: Double, processVariable: Double) {
+		error = if (!continuousWrapping)
+			setpoint - processVariable
+		else {
+			if ((setpoint - processVariable).absoluteValue < (((minimumAngle + maximumAngle)/2.0)-minimumAngle)) {
+				maximumAngle - (setpoint - processVariable)
+			} else setpoint - processVariable
+		}
 	}
 
 	//**Proportional**
@@ -50,4 +62,17 @@ class `PIDcontroller.kt`(
 	}
 
 	fun isWithinTolerance(tol: Double = tolerance) = if (error.absoluteValue < tol) true else false
+
+
+	//Continuous wrapping
+	private var minimumAngle = 0.0
+	private var maximumAngle = 0.0
+	private var continuousWrapping = false
+
+	fun enableContinuousWrapping(minAngle: Double, maxAngle: Double) {
+		if (maxAngle < minAngle) throw Exception("Maximum continuous wrapping angle cannot be smaller than the minimum angle")
+		minimumAngle = minAngle
+		maximumAngle = maxAngle
+		continuousWrapping = true
+	}
 }
