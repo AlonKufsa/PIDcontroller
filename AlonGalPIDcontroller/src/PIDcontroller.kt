@@ -23,14 +23,14 @@ class PIDController(
 	 *
 	 * If continuous wrapping is enabled then it will calculate the error as the shortest error
 	 */
-	private fun setError(setpoint: Double, processVariable: Double) {
-		if (!continuousWrapping) error = setpoint - processVariable
+	private fun calcError(setpoint: Double, processVariable: Double): Double {
+		if (!continuousWrapping) return setpoint - processVariable
 		else {
 			val fullCircle = maximumAngle - minimumAngle
 			val normalError = setpoint - processVariable
 			val inverseError = normalError + (fullCircle * ((-normalError).sign))
 
-			error = if (normalError.absoluteValue < inverseError.absoluteValue) normalError
+			return if (normalError.absoluteValue < inverseError.absoluteValue) normalError
 			else inverseError
 		}
 	}
@@ -57,7 +57,7 @@ class PIDController(
 
 	//A single cycle for the PID
 	fun runPIDcycle(setPoint: Double, processVariable: Double, timeSinceLastMeasurement: Double = deltaT): Double {
-		setError(setPoint, processVariable)
+		error = calcError(setPoint, processVariable)
 		val outputPID =
 			calcProportional() + calcIntegral(timeSinceLastMeasurement) + calcDerivative(timeSinceLastMeasurement)
 		prevError = error
