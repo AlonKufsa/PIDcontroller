@@ -3,3 +3,6 @@
 .idea/modules.xml
 .idea/PIDcontroller.iml
 .idea/vcs.xml
+.idea/kotlinc.xml
+.idea/libraries/KotlinJavaRuntime.xml
+AlonGalPIDcontroller/AlonGalPIDcontroller.iml
